@@ -9,8 +9,6 @@ import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import org.ylj.snail.json.util.ToolUtil;
-
 /**
  * @ClassName: Json2Json
  * @Description: TODO(换包为net.sf.json.JSON)
@@ -25,69 +23,10 @@ public class Json2Json {
 
 	private Map<String, String> map = new HashMap<String, String>();
 	private JSONObject root = new JSONObject();
-
-	public static void main(String args[]) {
-		Json2Json tj = new Json2Json();
-		/**
-		 * 转换范围说明
-		 * 一级k/v保持原样 ZZZZ:9999
-		 * 一级数组元素保持原样YHID:[\"AA\",\"BB\"]
-		 * 一级对象数组保持原样YHKB:[{YYYY:7777},{WWWW:8888}]
-		 * 二级K/V保持原样CZLY:{CCCC:333}
-		 * 一二级对象KEY名称转换 CZLY:{DDDD:{FFFF:4444} 转换为"CZLY2":{"DDDD2":{"FFFF":4444}}
-		 * 二级k/v转换到新的一级对象里面CZLY:{EEEE:5555}转换为"BODY":{"EEEE":5555}
-		 * 三级key名称CZLY:{GGGG:{HHHH:6666}}转换为"CZLY":{"GGGG":{"HHHH2":6666}}
-		 * 升级INFO节点中的所有k/v到一级节点INFO:{\"GGGG\":\"02\",\"WKBH\":\"b8:bc:1b:09:52:f8\"} 转换为 {"GGGG":"02","WKBH":"b8:bc:1b:09:52:f8"}
-		 * 降级k/v到BODY节点中"BODY":{"XTLX":1,"SJXH":"PE-CL00","EEEE":5555}其中"EEEE":5555 是从CZLY:{EEEE:5555}里面转进去的
-		 */
-		String js = "{INFO:{\"GGGG\":\"02\",\"WKBH\":\"b8:bc:1b:09:52:f8\"},\"XTLX\":1,\"SJXH\":\"PE-CL00\",ZZZZ:9999,YHKB:[{YYYY:7777},{WWWW:8888}],YHID:[\"AA\",\"BB\"],CZLY:{CCCC:333,DDDD:{FFFF:4444},EEEE:5555,GGGG:{HHHH:6666}}}";
-		String maptable = "{.INFO.WKBH:.BODY.WKBH,.XTLX:.BODY.XTLX,.SJXH:.BODY.SJXH,.YHKB<>:.YHKB1<>,.CZLY.DDDD.:.CZLY2.DDDD2.,.CZLY.EEEE:.BODY.EEEE,.CZLY.GGGG.HHHH:.CZLY.GGGG.HHHH2}";
-
-		/**
-		 * 升级INFO节点中的所有k/v到一级节点
-		 */
-//		js = "{action:\"member/login\",\"INFO\":{\"CZLY\":\"02\",\"WKBH\":\"b8:bc:1b:09:52:f8\",\"YDZD\":\"a0000055662c93\",\"QQIP\":\"b8-bc-1b-09-52-f8\",\"JRLS\":\"201607281206414207651\",\"IMSI\":\"460037420104887\",\"YWMA\":\"1006\",\"JRDM\":\"00003\",\"JYMA\":\"0001\",\"SFYY\":\"0\",\"CZMA\":\"21\"},\"BODY\":{\"XTLX\":1,\"SJXH\":\"PE-CL00\",\"SJPP\":\"Huawei\",\"DLFS\":1,\"DLZH\":\"13918401600\",\"DLIP\":\"b8-bc-1b-09-52-f8\",\"XTBB\":\"4.4.2\",\"DLMM\":\"qwerty\",YHKB:[{YHID:1,YHBC:\"cmb\"},{YHID:2,YHBC:\"icbc\"}]}}";
-//		maptable = "{.INFO.:.,.BODY.SJXH:.SJXH}";
-
-		/**
-		 * 降级k/v到INFO节点中
-		 */
-//		js = "{\"action\":\"member/login\",\"CZLY\":\"02\",\"WKBH\":\"b8:bc:1b:09:52:f8\",\"YDZD\":\"a0000055662c93\",\"QQIP\":\"b8-bc-1b-09-52-f8\",\"JRLS\":\"201607281206414207651\",\"IMSI\":\"460037420104887\",\"YWMA\":\"1006\",\"JRDM\":\"00003\",\"JYMA\":\"0001\",\"SFYY\":\"0\",\"CZMA\":\"21\",\"SJXH\":\"PE-CL00\",\"BODY\":{\"XTLX\":1,\"SJPP\":\"Huawei\",\"DLFS\":1,\"DLZH\":\"13918401600\",\"DLIP\":\"b8-bc-1b-09-52-f8\",\"XTBB\":\"4.4.2\",\"DLMM\":\"qwerty\",\"YHKB\":[{\"YHID\":1,\"YHBC\":\"cmb\"},{\"YHID\":2,\"YHBC\":\"icbc\"}]}}";
-//		maptable = "{.CZLY:.INFO.CZLY,.WKBH:.INFO.WKBH}";
-		
-		/**
-		 * 将二级K/V与一级K/V换到新建的BODY里面
-		 */
-//		js = "{INFO:{\"GGGG\":\"02\",\"WKBH\":\"b8:bc:1b:09:52:f8\"},\"XTLX\":1,\"SJXH\":\"PE-CL00\",ZZZZ:9999}";
-//		maptable = "{.INFO.WKBH:.BODY.WKBH,.XTLX:.BODY.XTLX,.SJXH:.BODY.SJXH}";
-
-		
 	
-		Map<String, String> map=ToolUtil.json2Map(JSONObject.fromObject(maptable));
-		try {
-			System.out.println(js);
-			System.out.println(maptable);
-			JSONObject result=tj.convertJson(JSONObject.fromObject(js),map);
-			System.out.println("-----------result:"+result);
-			
-			/**
-			 * 由于解析遍历JSON时是由前到后、由浅到深，
-			 * 如要转换某二级子对象，同时又要转换该对象的子对象（孙对象），必须先转换孙对象，再转换该子对象
-			 * 所以转换必须由深到浅转换，转换要分成多次完成，配置两个maptable，分两次调用转换方法。
-			 */
-			maptable = "{.INFO.:.}";
-			map=ToolUtil.json2Map(JSONObject.fromObject(maptable));
-			System.out.println(result);
-			System.out.println(maptable);
-			result=tj.convertJson(result,map);
-			System.out.println("-----------result:"+result);
-		} catch (Exception e) {
-			System.out.println("------"+e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	
-	
+	private boolean subAC_tag=false;//subArrayConvertTag 标识Array里面的objcet存在转换
+	private String subAC_nodeName="";//subArrayConvertTag 标识为true时记录Array的KEY名称
+
 	public JSONObject convertJson(JSONObject jo, Map<String, String> map)
 			throws Exception {
 		this.map=map;
@@ -158,7 +97,14 @@ public class Json2Json {
 				Object jsone=ja.get(i);
 				analyseElement(nodeName,jsone, subResja);
 			}
-			insertJe(nodeName, subResja,resJe);
+			
+			if(subAC_tag){//存在Array里面的object转换
+				insertNode(subAC_nodeName,subResja,root);
+				subAC_tag=false;
+				subAC_nodeName="";
+			}else{
+				insertJe(nodeName, subResja,resJe);
+			}
 			break;
 		case TYPE_PRIMITIVE:
 			insertJe(nodeName,reqJe,resJe);
@@ -222,14 +168,14 @@ public class Json2Json {
 							JSONArray tmpArr = (JSONArray) resJo.get(k);
 							if (tmpArr == null) {
 								tmpArr = new JSONArray();
-								resJo.put(k, tmpArr);
 							}
 							if (key.substring(pos + 2, pos + 3).equals(".")) {
 								key = key.substring(pos + 3, key.length());
 								JSONObject tmpNode = new JSONObject();
-								tmpArr.add(tmpNode);
 								insertNode(key,reqJe,tmpNode);
+								tmpArr.add(tmpNode);
 							}
+							resJo.put(k, tmpArr);
 							break;
 						}
 					} else {
@@ -246,17 +192,24 @@ public class Json2Json {
 	
 	/*
 	 * 比较待转前后nodeName结构是否有变化 例： 
-	 * 1.只改变key名称返回false
+	 * 只改变key名称返回false
 	 * .CZLY.DDDD:.CZLY.DDDD2 返回 false
-	 * 2.改变上一级节点名称返回true
+	 * 改变上一级节点名称返回true
 	 * .CZLY.DDDD:.CZLY2.DDDD2 返回 true
 	 */
 	private boolean compNodeName(String oldNodeStr,String newNodeStr){
-		if(oldNodeStr.split("\\<>").length!=newNodeStr.split("\\<>").length){
-			return true;
-		}else if(oldNodeStr.split("\\.").length!=newNodeStr.split("\\.").length){
-			return true;
+		int indexMark=oldNodeStr.lastIndexOf("<>.");//存在array里面的object转换情况，
+		/*
+		 * 简单判断结构是否一致，不一致返回true 
+		 */
+		if(indexMark ==-1){
+			if(oldNodeStr.split("\\<>").length!=newNodeStr.split("\\<>").length){
+				return true;
+			}else if(oldNodeStr.split("\\.").length!=newNodeStr.split("\\.").length){
+				return true;
+			}
 		}
+
 		/*
 		 * 替换串中的“.”与“<>”，比对节点节构是否有变化
 		 */
@@ -266,6 +219,7 @@ public class Json2Json {
 		_newNodeStr=_newNodeStr.replaceAll("<>","|");
 		String[] _oldNodeArray=_oldNodeStr.split("\\|");
 		String[] _newNodeArray=_newNodeStr.split("\\|");
+		
 		/*
 		 * 去除最深一层节点名称，不做比较
 		 */
@@ -281,7 +235,17 @@ public class Json2Json {
 //		}
 		Arrays.sort(__oldNodeArray);
 		Arrays.sort(__newNodeArray);
-		if(!Arrays.equals(__oldNodeArray, __newNodeArray)){
+		if(!Arrays.equals(__oldNodeArray, __newNodeArray)){//转换结构发生了调整
+			/*
+			 * 并且“<>.”与当前节点在左侧相连，如：<>.YHID 返回false
+			 */
+//			int indexMark=oldNodeStr.lastIndexOf("<>.");
+			int indexField=oldNodeStr.indexOf(_oldNodeArray[_oldNodeArray.length-1]);
+			if(indexMark!=-1 && indexField-indexMark==3){
+				subAC_tag=true;	
+				subAC_nodeName=newNodeStr.substring(0, newNodeStr.lastIndexOf("."));
+				return false;
+			}
 			return true;
 		}else{
 			return false;
@@ -292,9 +256,13 @@ public class Json2Json {
 	 * 往res里面添加req,节点名称为key
 	 */
 	private void insertJe( String nodeName,Object req,JSON res) throws Exception{
-//		System.out.println(nodeName+" nodeName==insertJe==root "+root);
-//		System.out.println(nodeName+" nodeName==insertJe==req "+req+"=="+res);
 		if(nodeName.equals(".")){//最后
+			return;
+		}
+		if(req.toString().equals("{}")){//jsonObject的子节点都转换走了只剩下“{}”
+			return;
+		}
+		if(req.toString().equals("[]")){//jsonArray的子节点都转换走了只剩下“[]”
 			return;
 		}
 		if (res instanceof JSONObject ) {
@@ -309,9 +277,7 @@ public class Json2Json {
 	private void insertObject(String key, Object value,JSONObject jo)
 			throws Exception {
 		try {
-//			System.out.println(key);
 			String keyName=getKeyName(key);
-//			System.out.println(keyName);
 			jo.put(keyName, value);
 		} catch (StringIndexOutOfBoundsException e) {
 			Exception ie = new Exception("Ilegal convert config string");
@@ -331,7 +297,6 @@ public class Json2Json {
 			}
 			String k = key.substring(0, pos);					
 			key = key.substring(pos + 1, key.length());
-//			ja.add(key, value);
 			ja.add(value);
 		} catch (StringIndexOutOfBoundsException e) {
 			Exception ie = new Exception("Ilegal convert config string");
